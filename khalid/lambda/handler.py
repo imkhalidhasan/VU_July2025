@@ -1,4 +1,6 @@
 import json
 
 def lambda_handler(event, context):
-    print("Hello from Lambda!")
+    for URL in URLS
+        print("Hello from Lambda!")
+

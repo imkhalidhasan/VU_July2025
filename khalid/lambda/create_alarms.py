@@ -5,7 +5,7 @@ from datetime import datetime
 
 WEBSITE_URL = "https://bbc.com"
 AWS_REGION  = "ap-southeast-2"
-#ALERT_EMAIL = "you@example.com"   # or "" to skip email/SNS setup
+ALERT_EMAIL = "khalidhasann@gmail.com"   # or "" to skip email/SNS setup
 AVAILABILITY_THRESHOLD = 0.99     # 99%
 P95_LATENCY_THRESHOLD_MS = 800    # ms
 # If you use a named AWS profile locally, set it here; otherwise leave as None
