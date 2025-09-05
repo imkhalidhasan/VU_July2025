@@ -1,0 +1,34 @@
+{
+  "version": "45.0.0",
+  "files": {
+    "12b41692e8361ddeb08a5e608c43988db7c447a040929298e17ffe4349c4e7f6": {
+      "displayName": "WebsiteMonitorFn/Code",
+      "source": {
+        "path": "asset.12b41692e8361ddeb08a5e608c43988db7c447a040929298e17ffe4349c4e7f6",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "current_account-current_region-2564b020": {
+          "bucketName": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}",
+          "objectKey": "12b41692e8361ddeb08a5e608c43988db7c447a040929298e17ffe4349c4e7f6.zip",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-file-publishing-role-${AWS::AccountId}-${AWS::Region}"
+        }
+      }
+    },
+    "4bda7a0d7cd850c35bf6b5c3c067b7affed3456a4fb7d08a0109fb5ba2d472e6": {
+      "displayName": "KhalidStack Template",
+      "source": {
+        "path": "KhalidStack.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "current_account-current_region-b50af822": {
+          "bucketName": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}",
+          "objectKey": "4bda7a0d7cd850c35bf6b5c3c067b7affed3456a4fb7d08a0109fb5ba2d472e6.json",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-file-publishing-role-${AWS::AccountId}-${AWS::Region}"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}

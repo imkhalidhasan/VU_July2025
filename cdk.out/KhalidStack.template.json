@@ -1,0 +1,611 @@
+{
+ "Resources": {
+  "WebsiteMonitorFnServiceRole154CBF76": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "KhalidStack/WebsiteMonitorFn/ServiceRole/Resource"
+   }
+  },
+  "WebsiteMonitorFnServiceRoleDefaultPolicy2855D43C": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "cloudwatch:PutMetricData",
+       "Condition": {
+        "StringEquals": {
+         "cloudwatch:namespace": "Website/Health"
+        }
+       },
+       "Effect": "Allow",
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "WebsiteMonitorFnServiceRoleDefaultPolicy2855D43C",
+    "Roles": [
+     {
+      "Ref": "WebsiteMonitorFnServiceRole154CBF76"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "KhalidStack/WebsiteMonitorFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "WebsiteMonitorFn7CB737CD": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "12b41692e8361ddeb08a5e608c43988db7c447a040929298e17ffe4349c4e7f6.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "WEBSITE_URL": "https://www.bbc.com",
+      "NAMESPACE": "Website/Health"
+     }
+    },
+    "Handler": "monitor_site.lambda_handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "WebsiteMonitorFnServiceRole154CBF76",
+      "Arn"
+     ]
+    },
+    "Runtime": "python3.12",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "WebsiteMonitorFnServiceRoleDefaultPolicy2855D43C",
+    "WebsiteMonitorFnServiceRole154CBF76"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "KhalidStack/WebsiteMonitorFn/Resource",
+    "aws:asset:path": "asset.12b41692e8361ddeb08a5e608c43988db7c447a040929298e17ffe4349c4e7f6",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "WebsiteMonitorFnLogGroup63F37E9D": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": {
+     "Fn::Join": [
+      "",
+      [
+       "/aws/lambda/",
+       {
+        "Ref": "WebsiteMonitorFn7CB737CD"
+       }
+      ]
+     ]
+    },
+    "RetentionInDays": 731
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "KhalidStack/WebsiteMonitorFn/LogGroup/Resource"
+   }
+  },
+  "WebsiteMonitorScheduleE6AACA42": {
+   "Type": "AWS::Events::Rule",
+   "Properties": {
+    "Description": "Run website health check every minute",
+    "ScheduleExpression": "rate(1 minute)",
+    "State": "ENABLED",
+    "Targets": [
+     {
+      "Arn": {
+       "Fn::GetAtt": [
+        "WebsiteMonitorFn7CB737CD",
+        "Arn"
+       ]
+      },
+      "Id": "Target0"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "KhalidStack/WebsiteMonitorSchedule/Resource"
+   }
+  },
+  "WebsiteMonitorScheduleAllowEventRuleKhalidStackWebsiteMonitorFn44A16422037DE503": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "WebsiteMonitorFn7CB737CD",
+      "Arn"
+     ]
+    },
+    "Principal": "events.amazonaws.com",
+    "SourceArn": {
+     "Fn::GetAtt": [
+      "WebsiteMonitorScheduleE6AACA42",
+      "Arn"
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "KhalidStack/WebsiteMonitorSchedule/AllowEventRuleKhalidStackWebsiteMonitorFn44A16422"
+   }
+  },
+  "WebsiteHealthAlerts7751A898": {
+   "Type": "AWS::SNS::Topic",
+   "Metadata": {
+    "aws:cdk:path": "KhalidStack/WebsiteHealthAlerts/Resource"
+   }
+  },
+  "WebsiteHealthAlertskhalidhasanngmailcom1A62BE05": {
+   "Type": "AWS::SNS::Subscription",
+   "Properties": {
+    "Endpoint": "khalidhasann@gmail.com",
+    "Protocol": "email",
+    "TopicArn": {
+     "Ref": "WebsiteHealthAlerts7751A898"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "KhalidStack/WebsiteHealthAlerts/khalidhasann@gmail.com/Resource"
+   }
+  },
+  "AvailabilityLow1298E641": {
+   "Type": "AWS::CloudWatch::Alarm",
+   "Properties": {
+    "AlarmActions": [
+     {
+      "Ref": "WebsiteHealthAlerts7751A898"
+     }
+    ],
+    "ComparisonOperator": "LessThanThreshold",
+    "DatapointsToAlarm": 3,
+    "Dimensions": [
+     {
+      "Name": "Target",
+      "Value": "https://www.bbc.com"
+     }
+    ],
+    "EvaluationPeriods": 5,
+    "MetricName": "Availability",
+    "Namespace": "Website/Health",
+    "OKActions": [
+     {
+      "Ref": "WebsiteHealthAlerts7751A898"
+     }
+    ],
+    "Period": 60,
+    "Statistic": "Average",
+    "Threshold": 0.99,
+    "TreatMissingData": "breaching"
+   },
+   "Metadata": {
+    "aws:cdk:path": "KhalidStack/AvailabilityLow/Resource"
+   }
+  },
+  "LatencyP95High00D6E83C": {
+   "Type": "AWS::CloudWatch::Alarm",
+   "Properties": {
+    "AlarmActions": [
+     {
+      "Ref": "WebsiteHealthAlerts7751A898"
+     }
+    ],
+    "ComparisonOperator": "GreaterThanThreshold",
+    "DatapointsToAlarm": 3,
+    "Dimensions": [
+     {
+      "Name": "Target",
+      "Value": "https://www.bbc.com"
+     }
+    ],
+    "EvaluationPeriods": 5,
+    "ExtendedStatistic": "p95",
+    "MetricName": "LatencyMs",
+    "Namespace": "Website/Health",
+    "OKActions": [
+     {
+      "Ref": "WebsiteHealthAlerts7751A898"
+     }
+    ],
+    "Period": 60,
+    "Threshold": 800,
+    "TreatMissingData": "notBreaching"
+   },
+   "Metadata": {
+    "aws:cdk:path": "KhalidStack/LatencyP95High/Resource"
+   }
+  },
+  "WebsiteHealthDashboardBC0D159E": {
+   "Type": "AWS::CloudWatch::Dashboard",
+   "Properties": {
+    "DashboardBody": {
+     "Fn::Join": [
+      "",
+      [
+       "{\"widgets\":[{\"type\":\"text\",\"width\":24,\"height\":2,\"x\":0,\"y\":0,\"properties\":{\"markdown\":\"# Website Health\\nTarget: https://www.bbc.com\\nNamespace: `Website/Health`\"}},{\"type\":\"metric\",\"width\":12,\"height\":6,\"x\":0,\"y\":2,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Availability\",\"region\":\"",
+       {
+        "Ref": "AWS::Region"
+       },
+       "\",\"metrics\":[[\"Website/Health\",\"Availability\",\"Target\",\"https://www.bbc.com\",{\"period\":60}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":12,\"height\":6,\"x\":12,\"y\":2,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Latency (p95)\",\"region\":\"",
+       {
+        "Ref": "AWS::Region"
+       },
+       "\",\"metrics\":[[\"Website/Health\",\"LatencyMs\",\"Target\",\"https://www.bbc.com\",{\"period\":60,\"stat\":\"p95\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":12,\"height\":3,\"x\":0,\"y\":8,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Alarms — Availability\",\"region\":\"",
+       {
+        "Ref": "AWS::Region"
+       },
+       "\",\"annotations\":{\"alarms\":[\"",
+       {
+        "Fn::GetAtt": [
+         "AvailabilityLow1298E641",
+         "Arn"
+        ]
+       },
+       "\"]},\"yAxis\":{}}},{\"type\":\"metric\",\"width\":12,\"height\":3,\"x\":12,\"y\":8,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Alarms — Latency\",\"region\":\"",
+       {
+        "Ref": "AWS::Region"
+       },
+       "\",\"annotations\":{\"alarms\":[\"",
+       {
+        "Fn::GetAtt": [
+         "LatencyP95High00D6E83C",
+         "Arn"
+        ]
+       },
+       "\"]},\"yAxis\":{}}}]}"
+      ]
+     ]
+    },
+    "DashboardName": "WebsiteHealth"
+   },
+   "Metadata": {
+    "aws:cdk:path": "KhalidStack/WebsiteHealthDashboard/Resource"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/71US28TMRD+LfWxcpeqPQC5JRQQUgshieghiqqJPd019XpWfjSqrP3vyN71kqiCCxInz8vffB7PzFV1dfmuujyDg7sQ8ulCq30V1x7EE4eDe4ga2r2EKn4KRnhFZhsZmmdlybRoPJuxc8aZVy1SKJogiaPYgJEa7ajZYFJk1noeGUj58Rhrm6PO2e7vzh3/8GgKnyQv0bbKOUWm5wraKq5I4zYycC60KBcvbBZZZ5URqgM9F4LCRH2ISRfmGW8kx1owUKNcklZCoWOzbTyxvcztGFvYbmhZUgwR6c7o9R5E88VoZXDyTQ/9ozM/NFHjgz2XoFzYUPK8wnltlnLtwWOqohspZeABs+fu+gGcQ++qeTq4u64WQTyhX4DD7Y5rql0Vb6n+bCl028j0KH6F8pcZr0T0HJ9TriquQv4GiU5Y1U3V5cyJBmXQp52QLi3Be0yFPaa/AVujP6aegHvujKvihjolcnRyZI2vw37KuI3MJ+OYGY3sSE2/31nyJEizGcMWlGacPSrt0ZaPyFHHpnvlmzt0DmpckCwREkHeYuL+PWA4rsoxl54LTUEewIuminMNtk3j9Aw6QPIv0SqSrgxVY9E1pOU0Vm0HVjky3zq04KmMlQQP+VFuQxm0AFgEf5cGw9Q34IHN2N4iiEaZmnHWorepLpEdwBpl6iFxP1Y9I5WZKI38P7ka8ot/oZvLn838BlyzJ7AydWORf7fvgHCvZI3DiJym4JP646oYlPRN2XGo6saXvTEsKX66rKb8fc9X6ChYgUPP5pFbe6iVqXu+fPENmTfX1fvq7dlPp9TFuDKr1XD+AmgPJ+6uBQAA"
+   },
+   "Metadata": {
+    "aws:cdk:path": "KhalidStack/CDKMetadata/Default"
+   },
+   "Condition": "CDKMetadataAvailable"
+  }
+ },
+ "Conditions": {
+  "CDKMetadataAvailable": {
+   "Fn::Or": [
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "af-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-east-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-northeast-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-northeast-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-northeast-3"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-south-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-3"
+       ]
+      }
+     ]
+    },
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-4"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ca-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ca-west-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "cn-north-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "cn-northwest-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-central-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-north-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-south-2"
+       ]
+      }
+     ]
+    },
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-3"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "il-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "me-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "me-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "sa-east-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-east-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-east-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-west-1"
+       ]
+      }
+     ]
+    },
+    {
+     "Fn::Equals": [
+      {
+       "Ref": "AWS::Region"
+      },
+      "us-west-2"
+     ]
+    }
+   ]
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}

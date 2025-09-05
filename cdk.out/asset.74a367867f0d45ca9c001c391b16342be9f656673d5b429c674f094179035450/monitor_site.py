@@ -6,8 +6,8 @@ import urllib.request
 import boto3
 
 WEBSITE_URL = os.getenv("WEBSITE_URL", "https://www.bbc.com")
-AWS_REGION  = os.getenv("AWS_REGION")
-NAMESPACE   = os.getenv("NAMESPACE", "MNcloud")
+AWS_REGION  = os.getenv("AWS_REGION", "ap-southeast-2")
+NAMESPACE   = os.getenv("NAMESPACE", "Website/Health")
 
 def check_once(url: str, timeout_s: float = 10.0):
     t0 = time.perf_counter()
