@@ -70,7 +70,7 @@
      "S3Bucket": {
       "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
      },
-     "S3Key": "12b41692e8361ddeb08a5e608c43988db7c447a040929298e17ffe4349c4e7f6.zip"
+     "S3Key": "090860b6897f7b856c5f3c8a93881b4a175884fa2ddfcef5f860109c255deb09.zip"
     },
     "Environment": {
      "Variables": {
@@ -94,7 +94,7 @@
    ],
    "Metadata": {
     "aws:cdk:path": "KhalidStack/WebsiteMonitorFn/Resource",
-    "aws:asset:path": "asset.12b41692e8361ddeb08a5e608c43988db7c447a040929298e17ffe4349c4e7f6",
+    "aws:asset:path": "asset.090860b6897f7b856c5f3c8a93881b4a175884fa2ddfcef5f860109c255deb09",
     "aws:asset:is-bundled": false,
     "aws:asset:property": "Code"
    }
@@ -192,6 +192,7 @@
       "Ref": "WebsiteHealthAlerts7751A898"
      }
     ],
+    "AlarmDescription": "Avg availability below threshold for https://www.bbc.com",
     "ComparisonOperator": "LessThanThreshold",
     "DatapointsToAlarm": 3,
     "Dimensions": [
@@ -225,6 +226,7 @@
       "Ref": "WebsiteHealthAlerts7751A898"
      }
     ],
+    "AlarmDescription": "p95 latency over 800 ms for https://www.bbc.com",
     "ComparisonOperator": "GreaterThanThreshold",
     "DatapointsToAlarm": 3,
     "Dimensions": [
@@ -248,6 +250,262 @@
    },
    "Metadata": {
     "aws:cdk:path": "KhalidStack/LatencyP95High/Resource"
+   }
+  },
+  "AlarmEvents015C0C6B": {
+   "Type": "AWS::DynamoDB::Table",
+   "Properties": {
+    "AttributeDefinitions": [
+     {
+      "AttributeName": "alarmName",
+      "AttributeType": "S"
+     },
+     {
+      "AttributeName": "eventTime",
+      "AttributeType": "S"
+     }
+    ],
+    "BillingMode": "PAY_PER_REQUEST",
+    "KeySchema": [
+     {
+      "AttributeName": "alarmName",
+      "KeyType": "HASH"
+     },
+     {
+      "AttributeName": "eventTime",
+      "KeyType": "RANGE"
+     }
+    ],
+    "TableName": "AlarmEvents"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "KhalidStack/AlarmEvents/Resource"
+   }
+  },
+  "AlarmEventsDLQ9EDAB282": {
+   "Type": "AWS::SQS::Queue",
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "KhalidStack/AlarmEventsDLQ/Resource"
+   }
+  },
+  "AlarmEventsDLQPolicy6AD61D7C": {
+   "Type": "AWS::SQS::QueuePolicy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sqs:SendMessage",
+       "Condition": {
+        "ArnEquals": {
+         "aws:SourceArn": {
+          "Ref": "WebsiteHealthAlerts7751A898"
+         }
+        }
+       },
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "sns.amazonaws.com"
+       },
+       "Resource": {
+        "Fn::GetAtt": [
+         "AlarmEventsDLQ9EDAB282",
+         "Arn"
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "Queues": [
+     {
+      "Ref": "AlarmEventsDLQ9EDAB282"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "KhalidStack/AlarmEventsDLQ/Policy/Resource"
+   }
+  },
+  "SnsToDdbFnServiceRole338EE235": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "KhalidStack/SnsToDdbFn/ServiceRole/Resource"
+   }
+  },
+  "SnsToDdbFnServiceRoleDefaultPolicy08F6D1E7": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchWriteItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "AlarmEvents015C0C6B",
+          "Arn"
+         ]
+        },
+        {
+         "Ref": "AWS::NoValue"
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "SnsToDdbFnServiceRoleDefaultPolicy08F6D1E7",
+    "Roles": [
+     {
+      "Ref": "SnsToDdbFnServiceRole338EE235"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "KhalidStack/SnsToDdbFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "SnsToDdbFn4099BC8F": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "090860b6897f7b856c5f3c8a93881b4a175884fa2ddfcef5f860109c255deb09.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "TABLE_NAME": {
+       "Ref": "AlarmEvents015C0C6B"
+      }
+     }
+    },
+    "Handler": "sns_to_ddb.lambda_handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "SnsToDdbFnServiceRole338EE235",
+      "Arn"
+     ]
+    },
+    "Runtime": "python3.12",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "SnsToDdbFnServiceRoleDefaultPolicy08F6D1E7",
+    "SnsToDdbFnServiceRole338EE235"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "KhalidStack/SnsToDdbFn/Resource",
+    "aws:asset:path": "asset.090860b6897f7b856c5f3c8a93881b4a175884fa2ddfcef5f860109c255deb09",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "SnsToDdbFnLogGroup2EAB777D": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": {
+     "Fn::Join": [
+      "",
+      [
+       "/aws/lambda/",
+       {
+        "Ref": "SnsToDdbFn4099BC8F"
+       }
+      ]
+     ]
+    },
+    "RetentionInDays": 731
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "KhalidStack/SnsToDdbFn/LogGroup/Resource"
+   }
+  },
+  "SnsToDdbFnAllowInvokeKhalidStackWebsiteHealthAlerts24A4588362A26EB3": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "SnsToDdbFn4099BC8F",
+      "Arn"
+     ]
+    },
+    "Principal": "sns.amazonaws.com",
+    "SourceArn": {
+     "Ref": "WebsiteHealthAlerts7751A898"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "KhalidStack/SnsToDdbFn/AllowInvoke:KhalidStackWebsiteHealthAlerts24A45883"
+   }
+  },
+  "SnsToDdbFnWebsiteHealthAlerts6EC1BB8A": {
+   "Type": "AWS::SNS::Subscription",
+   "Properties": {
+    "Endpoint": {
+     "Fn::GetAtt": [
+      "SnsToDdbFn4099BC8F",
+      "Arn"
+     ]
+    },
+    "Protocol": "lambda",
+    "RedrivePolicy": {
+     "deadLetterTargetArn": {
+      "Fn::GetAtt": [
+       "AlarmEventsDLQ9EDAB282",
+       "Arn"
+      ]
+     }
+    },
+    "TopicArn": {
+     "Ref": "WebsiteHealthAlerts7751A898"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "KhalidStack/SnsToDdbFn/WebsiteHealthAlerts/Resource"
    }
   },
   "WebsiteHealthDashboardBC0D159E": {
@@ -300,7 +558,7 @@
   "CDKMetadata": {
    "Type": "AWS::CDK::Metadata",
    "Properties": {
-    "Analytics": "v2:deflate64:H4sIAAAAAAAA/71US28TMRD+LfWxcpeqPQC5JRQQUgshieghiqqJPd019XpWfjSqrP3vyN71kqiCCxInz8vffB7PzFV1dfmuujyDg7sQ8ulCq30V1x7EE4eDe4ga2r2EKn4KRnhFZhsZmmdlybRoPJuxc8aZVy1SKJogiaPYgJEa7ajZYFJk1noeGUj58Rhrm6PO2e7vzh3/8GgKnyQv0bbKOUWm5wraKq5I4zYycC60KBcvbBZZZ5URqgM9F4LCRH2ISRfmGW8kx1owUKNcklZCoWOzbTyxvcztGFvYbmhZUgwR6c7o9R5E88VoZXDyTQ/9ozM/NFHjgz2XoFzYUPK8wnltlnLtwWOqohspZeABs+fu+gGcQ++qeTq4u64WQTyhX4DD7Y5rql0Vb6n+bCl028j0KH6F8pcZr0T0HJ9TriquQv4GiU5Y1U3V5cyJBmXQp52QLi3Be0yFPaa/AVujP6aegHvujKvihjolcnRyZI2vw37KuI3MJ+OYGY3sSE2/31nyJEizGcMWlGacPSrt0ZaPyFHHpnvlmzt0DmpckCwREkHeYuL+PWA4rsoxl54LTUEewIuminMNtk3j9Aw6QPIv0SqSrgxVY9E1pOU0Vm0HVjky3zq04KmMlQQP+VFuQxm0AFgEf5cGw9Q34IHN2N4iiEaZmnHWorepLpEdwBpl6iFxP1Y9I5WZKI38P7ka8ot/oZvLn838BlyzJ7AydWORf7fvgHCvZI3DiJym4JP646oYlPRN2XGo6saXvTEsKX66rKb8fc9X6ChYgUPP5pFbe6iVqXu+fPENmTfX1fvq7dlPp9TFuDKr1XD+AmgPJ+6uBQAA"
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/9VV32/TMBD+W/Aj8sK0PQB9a9lAiA1KW0ComqarfUvMHF+wnU2Vlf8d2YmzliFAgBC8JL4fvvvu7Pt8VBwdPikOH8CtOxDy+kCrTRGWHsQ1h1t3GTTUGwlFeN4a4RWZdWBobpQlU6PxbMIeMs68qpHaLAmSOCwrMFKjHSTbmuiZpI4HBlKe7sZaJ6+H7OKHxr8A4YI/uzK56rieo62Vc4pMxxXURViQxnVg4Fxbo5xt2SSwxiojVAN6KgS1I7reJ26YpnhDflaDgRLlnLQSCh2brMOebju1g2/uyYrmOUXvEfcMVu9BVC+NVgZH29jO7xr/8xLSWUVovNenU8wbVhQt9+LcV0u59OAxXgSXIf2pQAlhD67j7vgSnEPvimn8cXdczFpxjX4GDtcXXFPpinBG5QtLbbMOTA/L17Bzde8rU5K8reN4EwEUYdGmeyrRCaua8ew4c6JC2er9aYib5uA9xmPbrWkFtkS/W08M3HFnXBFW1CiRvKMhSXzZbsaM68B8VA6Z0ciG1Hi3GkueBGk2YViD0oyzK6U92nzMyWtX9UH56hydgxJnJLOHRJBnGLG/bbG9q+vnUvdU96u5LZZ3nf0mkNSa3aZ0XGhq5S14URVhqsHWkV5vQLcQ7XO0iqTLDFdZdBVpmQcy+p/cO1RBdQNWOTJvGrTgKVOfBA+pcreilCvHtQj+PDKbKU/AA5uwjUUQlTIl46xGb2PzArsFa5QpezzdcCtSpMwIeYz/gRIM+dnvVJEOK6n5CbhqQ2BlHKK83htFkPKDkiX2476fgo/i+6OsUNJX+XlCVVY+k2n/+PD9R2jM33G5NVCT3BRhBZs01Q1YryLuV5jY22RcnPltE5fLGNiR9d/32CitlSnP+5dzPv14OT9dXC5O3747Xa7S/a7p5o6xI514S9sYJUL5ioUSvI67z64IaQRGbkgST9+BrAP7HCW3x+Y7Dl3HF+iotQLXu93hiT2XHkplyo7Pt74i8+i4eFo8fvDJKXUwPPbFov9/AbALIQfrCAAA"
    },
    "Metadata": {
     "aws:cdk:path": "KhalidStack/CDKMetadata/Default"

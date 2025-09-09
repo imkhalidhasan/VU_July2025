@@ -18,7 +18,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-deploy-role-${AWS::AccountId}-${AWS::Region}",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-cfn-exec-role-${AWS::AccountId}-${AWS::Region}",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/4bda7a0d7cd850c35bf6b5c3c067b7affed3456a4fb7d08a0109fb5ba2d472e6.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/c14536d3f39fdc821f4f47c2fdabf62f3afca79464aeab9dbe27e08360f32d68.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
@@ -246,6 +246,7 @@
             "data": {
               "evaluationPeriods": "*",
               "threshold": "*",
+              "alarmDescription": "*",
               "comparisonOperator": "*",
               "datapointsToAlarm": "*",
               "treatMissingData": "breaching",
@@ -275,6 +276,7 @@
             "data": {
               "evaluationPeriods": "*",
               "threshold": "*",
+              "alarmDescription": "*",
               "comparisonOperator": "*",
               "datapointsToAlarm": "*",
               "treatMissingData": "notBreaching",
@@ -296,6 +298,225 @@
           {
             "type": "aws:cdk:logicalId",
             "data": "LatencyP95High00D6E83C"
+          }
+        ],
+        "/KhalidStack/AlarmEvents": [
+          {
+            "type": "aws:cdk:analytics:construct",
+            "data": {
+              "partitionKey": {
+                "name": "*",
+                "type": "S"
+              },
+              "sortKey": {
+                "name": "*",
+                "type": "S"
+              },
+              "billingMode": "PAY_PER_REQUEST",
+              "removalPolicy": "destroy",
+              "tableName": "*"
+            }
+          },
+          {
+            "type": "aws:cdk:hasPhysicalName",
+            "data": {
+              "Ref": "AlarmEvents015C0C6B"
+            }
+          }
+        ],
+        "/KhalidStack/AlarmEvents/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AlarmEvents015C0C6B"
+          }
+        ],
+        "/KhalidStack/AlarmEvents/ScalingRole": [
+          {
+            "type": "aws:cdk:analytics:construct",
+            "data": "*"
+          }
+        ],
+        "/KhalidStack/AlarmEventsDLQ": [
+          {
+            "type": "aws:cdk:analytics:construct",
+            "data": "*"
+          }
+        ],
+        "/KhalidStack/AlarmEventsDLQ/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AlarmEventsDLQ9EDAB282"
+          }
+        ],
+        "/KhalidStack/AlarmEventsDLQ/Policy": [
+          {
+            "type": "aws:cdk:analytics:construct",
+            "data": {
+              "queues": [
+                "*"
+              ]
+            }
+          }
+        ],
+        "/KhalidStack/AlarmEventsDLQ/Policy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AlarmEventsDLQPolicy6AD61D7C"
+          }
+        ],
+        "/KhalidStack/SnsToDdbFn": [
+          {
+            "type": "aws:cdk:analytics:construct",
+            "data": {
+              "environment": "*",
+              "timeout": "*",
+              "code": "*",
+              "handler": "*",
+              "runtime": "*"
+            }
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": {
+              "addEnvironment": [
+                "*",
+                "*"
+              ]
+            }
+          }
+        ],
+        "/KhalidStack/SnsToDdbFn/ServiceRole": [
+          {
+            "type": "aws:cdk:analytics:construct",
+            "data": {
+              "assumedBy": {
+                "principalAccount": "*",
+                "assumeRoleAction": "*"
+              },
+              "managedPolicies": [
+                {
+                  "managedPolicyArn": "*"
+                }
+              ]
+            }
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": {
+              "addToPrincipalPolicy": [
+                {}
+              ]
+            }
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": {
+              "attachInlinePolicy": [
+                "*"
+              ]
+            }
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": {
+              "attachInlinePolicy": [
+                "*"
+              ]
+            }
+          }
+        ],
+        "/KhalidStack/SnsToDdbFn/ServiceRole/ImportServiceRole": [
+          {
+            "type": "aws:cdk:analytics:construct",
+            "data": "*"
+          }
+        ],
+        "/KhalidStack/SnsToDdbFn/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "SnsToDdbFnServiceRole338EE235"
+          }
+        ],
+        "/KhalidStack/SnsToDdbFn/ServiceRole/DefaultPolicy": [
+          {
+            "type": "aws:cdk:analytics:construct",
+            "data": "*"
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": {
+              "attachToRole": [
+                "*"
+              ]
+            }
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": {
+              "attachToRole": [
+                "*"
+              ]
+            }
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": {
+              "addStatements": [
+                {}
+              ]
+            }
+          }
+        ],
+        "/KhalidStack/SnsToDdbFn/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "SnsToDdbFnServiceRoleDefaultPolicy08F6D1E7"
+          }
+        ],
+        "/KhalidStack/SnsToDdbFn/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "SnsToDdbFn4099BC8F"
+          }
+        ],
+        "/KhalidStack/SnsToDdbFn/LogGroup": [
+          {
+            "type": "aws:cdk:analytics:construct",
+            "data": {
+              "logGroupName": "*"
+            }
+          }
+        ],
+        "/KhalidStack/SnsToDdbFn/LogGroup/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "SnsToDdbFnLogGroup2EAB777D"
+          }
+        ],
+        "/KhalidStack/SnsToDdbFn/AllowInvoke:KhalidStackWebsiteHealthAlerts24A45883": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "SnsToDdbFnAllowInvokeKhalidStackWebsiteHealthAlerts24A4588362A26EB3"
+          }
+        ],
+        "/KhalidStack/SnsToDdbFn/WebsiteHealthAlerts": [
+          {
+            "type": "aws:cdk:analytics:construct",
+            "data": {
+              "topic": "*",
+              "endpoint": "*",
+              "protocol": "lambda",
+              "filterPolicy": "*",
+              "filterPolicyWithMessageBody": "*",
+              "region": "*",
+              "deadLetterQueue": "*"
+            }
+          }
+        ],
+        "/KhalidStack/SnsToDdbFn/WebsiteHealthAlerts/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "SnsToDdbFnWebsiteHealthAlerts6EC1BB8A"
           }
         ],
         "/KhalidStack/WebsiteHealthDashboard": [
