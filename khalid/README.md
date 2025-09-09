@@ -49,15 +49,17 @@ npm install -g aws-cdk
 
 git clone https://github.com/<your-username>/<your-repo>.git
 cd <your-repo>
+
 5. Create Virtual Environment
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt3. 
+pip install -r requirements.txt
+
 6. Deploy Stack
 
 cdk deploy
 
-5. Post-Deployment
+7. Post-Deployment
 Confirm SNS email subscription (check your inbox).
 
 Visit CloudWatch → Dashboards → WebsiteHealth to view metrics.
@@ -69,14 +71,15 @@ Check DynamoDB → AlarmEvents for stored alarm notifications.
 python
 
 .
-├── app.py                  # CDK entry point
-├── cdk.json                # CDK configuration
-├── stack/
-│   └── khalid_stack.py     # Main stack definition
-└── lambda/
-    ├── monitor_site.py     # Website monitoring Lambda
-    └── sns_to_ddb.py       # SNS-to-DynamoDB Lambda
-✅ Final System Delivery & Evaluation
+app.py                  # CDK entry point
+cdk.json                # CDK configuration
+ stack/
+   khalid_stack.py     # Main stack definition
+ lambda/
+     monitor_site.py     # Website monitoring Lambda
+    sns_to_ddb.py       # SNS-to-DynamoDB Lambda
+
+ Final System Delivery & Evaluation
 
 System Product
 
